@@ -4,6 +4,8 @@ const {log,error} = console;
 const http = require('http');
 const fs = require('fs');
 
+const start = Date.now();
+
 const PORT = config.server.port; //unused port and since now the OFFICIAL ttt_discord_bot port ;)
 
 var guild, channel;
@@ -12,19 +14,24 @@ var muted = {};
 
 var get = [];
 
+function timestamp() {
+	let d = new Date();
+	return "[" + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds() + ":" + d.getMilliseconds() + "] ";
+}
+
 //create discord client
 const client = new Discord.Client();
 client.login(config.discord.token);
 
 client.on('ready', () => {
-	log('Bot is ready to mute them all! :)');
+	log("  " + timestamp() + 'Bot is ready to mute them all! :)');
 	guild = client.guilds.get(config.discord.guild);
 //	guild = client.guilds.find('id',config.discord.guild);
 	channel = guild.channels.get(config.discord.channel);
 //	channel = guild.channels.find('id',config.discord.channel);
 });
 client.on('voiceStateUpdate',(oldMember,newMember) => {//player leaves the ttt-channel
-	if (oldMember.voiceChannel != newMember.voiceChannel && isMemberInVoiceChannel(oldMember)) {
+	 if (oldMember.voiceChannel != newMember.voiceChannel && isMemberInVoiceChannel(oldMember)) {
 		if (isMemberMutedByBot(newMember) && newMember.serverMute) newMember.setMute(false).then(()=>{
 			setMemberMutedByBot(newMember,false);
 		});
@@ -34,6 +41,7 @@ client.on('voiceStateUpdate',(oldMember,newMember) => {//player leaves the ttt-c
 isMemberInVoiceChannel = (member) => member.voiceChannelID == config.discord.channel;
 isMemberMutedByBot = (member) => muted[member] == true;
 setMemberMutedByBot = (member,set=true) => muted[member] = set;
+
 
 get['connect'] = (params,ret) => {
 	let tag_utf8 = params.tag.split(" ");
@@ -60,19 +68,53 @@ get['connect'] = (params,ret) => {
 	}
 };
 
+get['state'] = (params,ret) => {
+	let id = params.id;
+	if (typeof id !== 'string') {
+		ret({
+			success: false,
+			error: "id is not a string",
+		});
+		return;
+	}
+	let member = guild.members.find(user => user.id === id);
+	log("  " + timestamp() + " (" + params.num + ") Status: " + member["user"].username + " mute: " + member.serverMute);
+
+	if (member) {
+		if (isMemberInVoiceChannel(member)) {
+			if (!member.servermute) {
+				setMemberMutedByBot(false);
+			}
+			ret({
+				success: true,
+				muted: member.serverMute
+			});
+		}
+	} else {
+		ret({
+			success: false,
+			error: 'member not found!' //TODO lua: remove from ids table + file
+		});
+	}
+}
+
 get['mute'] = (params,ret) => {
 	let id = params.id;
 	let mute = params.mute
+	let reason = params.reason
 	if (typeof id !== 'string' || typeof mute !== 'boolean') {
-		ret();
+		log("**" + timestamp() + " (" + params.num + ") Mute Request Failed: id is not string or mute is not bool" + params);
+		ret({
+			success: false,
+			error: "id is not a string or mute is not a boolean",
+		});
 		return;
 	}
-	log("Muted: " + id);
 	//let member = guild.members.find('id', id);
 	let member = guild.members.find(user => user.id === id);
+	log("**" + timestamp() + " (" + params.num + ") Mute : " + member["user"].username + " meber is ,ie " + member.servermute);
 
 	if (member) {
-
 		if (isMemberInVoiceChannel(member)) {
 			if (!member.serverMute && mute) {
 				member.setMute(true,"dead players can't talk!").then(()=>{
@@ -101,24 +143,27 @@ get['mute'] = (params,ret) => {
 				});
 			}
 			else {
-				// Already in requested state
+				// Already in correct state
 				ret({
 					success: true,
 				});
 			}
 		}
 		else {
-			ret();
+			ret({
+				success: false,
+				error: 'member not in voice channel!'
+			});
 		}
 
 	}else {
 		ret({
 			success: false,
-			err: 'member not found!' //TODO lua: remove from ids table + file
+			error: 'member not found!' //TODO lua: remove from ids table + file
 		});
 	}
-
 }
+
 
 var srvr = http.createServer((req,res)=>{
 	if (typeof req.headers.params === 'string' && typeof req.headers.req === 'string' && typeof get[req.headers.req] === 'function') {
@@ -136,5 +181,5 @@ srvr.timeout = 1000;
 srvr.listen({
 	port: PORT
 },()=>{
-	log('http interface is ready :)')
+	log("  " + timestamp() + 'http interface is ready :)')
 });
