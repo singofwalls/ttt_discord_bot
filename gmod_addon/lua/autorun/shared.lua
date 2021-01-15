@@ -47,7 +47,6 @@ end
 function GET(req, params, cb, tries)
 	httpAdress = ("http://" .. GetConVar("discordbot_host"):GetString() .. ":" .. GetConVar("discordbot_port"):GetString())
 	params["num"] = num
-	print("[" .. timestamp() ..  "] " .. num)
 	num = num + 1
 	http.Fetch(httpAdress, function(res)
 		--print(res)
