@@ -10,7 +10,7 @@ if (CLIENT) then
 	end)
 
 	hook.Add("HUDPaint", "ttt_discord_bot_HUDPaint", function()
-		if drawMute then
+		if drawMute and GetConVar("discordbot_enabled"):GetBool() then
 			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetMaterial(muteIcon)
 			surface.DrawTexturedRect(0, 0, 128, 128)
@@ -23,6 +23,7 @@ end
 util.AddNetworkString("drawMute")
 CreateConVar("discordbot_host", "localhost", FCVAR_ARCHIVE, "Sets the node server address.")
 CreateConVar("discordbot_unmute_time", "0", FCVAR_ARCHIVE, "How long in seconds a mute lasts. 0 for until new round.")
+CreateConVar("discordbot_enabled", "1", FCVAR_ARCHIVE, "Enable the discord bot.")
 CreateConVar("discordbot_port", "37405", FCVAR_ARCHIVE, "Sets the node server port.")
 CreateConVar("discordbot_name", "TTT Discord Bot", FCVAR_ARCHIVE, "Sets the Plugin Prefix for helpermessages.") --The name which will be displayed in front of any Message
 FILEPATH = "ttt_discord_bot.dat"
@@ -46,6 +47,9 @@ function timestamp()
 end
 
 function GET(req, params, cb, tries)
+    if not GetConVar("discordbot_enabled"):GetBool() then
+        return
+    end
 	httpAdress = ("http://" .. GetConVar("discordbot_host"):GetString() .. ":" .. GetConVar("discordbot_port"):GetString())
 	params["num"] = num
 	num = num + 1
@@ -132,6 +136,9 @@ function mute(ply)
 end
 
 function unmute(ply, reason)
+    if not GetConVar("discordbot_enabled"):GetBool() then
+        return
+    end
 	sendClientIconInfo(ply, false)
 	if not reason then
 		reason = "none"
@@ -174,6 +181,9 @@ function commonRoundState()
 end
 
 hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
+    if not GetConVar("discordbot_enabled"):GetBool() then
+        return
+    end
     -- TODO: Allow players to unmute themselves
 	if (string.sub(msg, 1, 9) ~= '!discord ') then return end
 	tag = string.sub(msg, 10)
@@ -205,6 +215,9 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
 end)
 
 hook.Add("PlayerInitialSpawn", "ttt_discord_bot_PlayerInitialSpawn", function(ply)
+    if not GetConVar("discordbot_enabled"):GetBool() then
+        return
+    end
 	if (ids[ply:SteamID()]) then
 		ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "You are connected with discord.")
 	else
@@ -246,7 +259,9 @@ hook.Add("OnStartRound", "ttt_discord_bot_OnStartRound", function()
 end)
 
 hook.Add("PostPlayerDeath", "ttt_discord_bot_PostPlayerDeath", function(ply)
-	print("Player died: " .. ply:GetName() .. ". round state: " .. commonRoundState())
+    if not GetConVar("discordbot_enabled"):GetBool() then
+        return
+    end
 	if (commonRoundState() == 1) then
 		mute(ply)
 	end
@@ -254,6 +269,9 @@ end)
 
 
 timer.Create("mute_status", 1, 0, function ()
+    if not GetConVar("discordbot_enabled"):GetBool() then
+        return
+    end
 	for key, ply in pairs(player.GetAll()) do
 		updateIcon(ply)
 	end
