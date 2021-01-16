@@ -129,7 +129,7 @@ function mute(ply)
 		end)
 		mute_time = tonumber(GetConVar("discordbot_unmute_time"):GetString())
 		if mute_time ~= 0 then
-			timer.Create("unmute " .. ply:GetName(), mute_time, 0, function ()
+			timer.Create("unmute " .. ply:GetName(), mute_time, 1, function ()
 				unmute(ply)
 			end)
 		end
