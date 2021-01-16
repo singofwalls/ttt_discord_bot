@@ -38,20 +38,6 @@ if (ids_raw) then
 	ids = util.JSONToTable(ids_raw)
 end
 
--- Taken from here: https://stackoverflow.com/a/27028488
-function dump(o)
-    if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. dump(v) .. ','
-       end
-       return s .. '} '
-    else
-       return tostring(o)
-    end
- end
-
 function saveIDs()
 	file.Write(FILEPATH, util.TableToJSON(ids))
 end
