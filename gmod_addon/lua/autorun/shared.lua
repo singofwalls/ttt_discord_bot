@@ -38,6 +38,20 @@ if (ids_raw) then
 	ids = util.JSONToTable(ids_raw)
 end
 
+-- Taken from here: https://stackoverflow.com/a/27028488
+function dump(o)
+    if type(o) == 'table' then
+       local s = '{ '
+       for k,v in pairs(o) do
+          if type(k) ~= 'number' then k = '"'..k..'"' end
+          s = s .. '['..k..'] = ' .. dump(v) .. ','
+       end
+       return s .. '} '
+    else
+       return tostring(o)
+    end
+ end
+
 function saveIDs()
 	file.Write(FILEPATH, util.TableToJSON(ids))
 end
@@ -185,7 +199,6 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
     if not GetConVar("discordbot_enabled"):GetBool() then
         return
     end
-    -- TODO: Allow players to unmute themselves
     if (string.sub(msg, 1, 9) ~= '!discord ') then return end
     if (string.sub(msg, 10, 15) == 'unmute') then
         if GetConVar("discordbot_allow_player_unmutes"):GetBool() then
@@ -195,13 +208,38 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
         end
         return
     end
-    -- if string.find(msg, " ", 10) then
-    --     -- Admin attempting to link someone's discord
-    --     if not ply:IsListenServerHost() then
-    --         ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Only the host can link someone else.")
-    --     end
-    -- end
-	tag = string.sub(msg, 10)
+
+    forcing = false
+    if (string.sub(msg, 10, 15) == 'force ') then
+        -- Admin attempting to link someone's discord
+        if not ply:IsListenServerHost() then
+            ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Only the host can link someone else.")
+            return
+        end
+        space_loc = string.find(msg, " ", 16)
+        if space_loc == nil then
+            ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "There must be a space between the discord name and the player name.")
+            return
+        end
+        tag = string.sub(msg, 16, space_loc - 1)
+        player_name = string.sub(msg, space_loc + 1)
+        force_plys = ents.FindByName(player_name)
+        if #force_plys == 0 then
+            ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "No entities found with that name.")
+            return
+        end
+        print(dump(force_plys))
+
+        force_ply = force_plys[1]
+        if not force_ply:IsPlayer() then
+            ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "No players found with that name.")
+            return
+        end
+
+        forcing = true
+    else 
+        tag = string.sub(msg, 10)
+    end
 	tag_utf8 = ""
 
 	for p, c in utf8.codes(tag) do
@@ -220,8 +258,12 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
 		end
 
 		if (res.tag and res.id) then
-			ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Discord tag '" .. res.tag .. "' successfully boundet to SteamID '" .. ply:SteamID() .. "'") --lie! actually the discord id is bound! ;)
-			ids[ply:SteamID()] = res.id
+            bound_ply = ply
+            if forcing then 
+                bound_ply = force_ply
+            end
+            ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Discord tag '" .. res.tag .. "' successfully bound to player '" .. bound_ply:GetName() .. "'") --lie! actually the discord id is bound! ;)
+            ids[bound_ply:SteamID()] = res.id
 			saveIDs()
 		end
 	end)
