@@ -10,7 +10,7 @@ if (CLIENT) then
 	end)
 
 	hook.Add("HUDPaint", "ttt_discord_bot_HUDPaint", function()
-		if drawMute and GetConVar("discordbot_enabled"):GetBool() then
+		if drawMute then
 			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetMaterial(muteIcon)
 			surface.DrawTexturedRect(0, 0, 128, 128)
