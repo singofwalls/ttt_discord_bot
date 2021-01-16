@@ -25,6 +25,7 @@ CreateConVar("discordbot_host", "localhost", FCVAR_ARCHIVE, "Sets the node serve
 CreateConVar("discordbot_unmute_time", "0", FCVAR_ARCHIVE, "How long in seconds a mute lasts. 0 for until new round.")
 CreateConVar("discordbot_enabled", "1", FCVAR_ARCHIVE, "Enable the discord bot.")
 CreateConVar("discordbot_allow_player_unmutes", "1", FCVAR_ARCHIVE, "Allow players to unmute themselves with '!discord unmute'.")
+CreateConVar("discordbot_allow_player_bind", "1", FCVAR_ARCHIVE, "Allow players to bind themselves with !discord <name>'.")
 CreateConVar("discordbot_port", "37405", FCVAR_ARCHIVE, "Sets the node server port.")
 CreateConVar("discordbot_name", "TTT Discord Bot", FCVAR_ARCHIVE, "Sets the Plugin Prefix for helpermessages.") --The name which will be displayed in front of any Message
 FILEPATH = "ttt_discord_bot.dat"
@@ -225,6 +226,10 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
 
         forcing = true
     else 
+        if not ply:IsListenServerHost() and not GetConVar("discordbot_allow_player_bind"):GetBool() then
+            ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "The host has disallowed players from linking themselves.")
+            return
+        end
         tag = string.sub(msg, 10)
     end
 	tag_utf8 = ""
