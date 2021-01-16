@@ -187,7 +187,7 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
     end
     -- TODO: Allow players to unmute themselves
     if (string.sub(msg, 1, 9) ~= '!discord ') then return end
-    if (string.sub(msg, 10, 6) ~= 'unmute') then
+    if (string.sub(msg, 10, 15) == 'unmute') then
         if GetConVar("discordbot_allow_player_unmutes"):GetBool() then
             unmute(ply, "Player requested unmute")
         else
@@ -195,6 +195,12 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
         end
         return
     end
+    -- if string.find(msg, " ", 10) then
+    --     -- Admin attempting to link someone's discord
+    --     if not ply:IsListenServerHost() then
+    --         ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Only the host can link someone else.")
+    --     end
+    -- end
 	tag = string.sub(msg, 10)
 	tag_utf8 = ""
 
