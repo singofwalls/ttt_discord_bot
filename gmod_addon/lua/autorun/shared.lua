@@ -223,15 +223,16 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
         end
         tag = string.sub(msg, 16, space_loc - 1)
         player_name = string.sub(msg, space_loc + 1)
-        force_plys = ents.FindByName(player_name)
-        if #force_plys == 0 then
-            ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "No entities found with that name.")
-            return
+        found_ply = false
+        force_ply = nil
+        for i, v in ipairs( player.GetAll() ) do
+            if v:Nick() == player_name then
+                force_ply = v
+                found_ply = true
+                break
+            end
         end
-        print(dump(force_plys))
-
-        force_ply = force_plys[1]
-        if not force_ply:IsPlayer() then
+        if not found_ply then
             ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "No players found with that name.")
             return
         end
