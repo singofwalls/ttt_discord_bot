@@ -24,6 +24,7 @@ util.AddNetworkString("drawMute")
 CreateConVar("discordbot_host", "localhost", FCVAR_ARCHIVE, "Sets the node server address.")
 CreateConVar("discordbot_unmute_time", "0", FCVAR_ARCHIVE, "How long in seconds a mute lasts. 0 for until new round.")
 CreateConVar("discordbot_enabled", "1", FCVAR_ARCHIVE, "Enable the discord bot.")
+CreateConVar("discordbot_allow_player_unmutes", "1", FCVAR_ARCHIVE, "Allow players to unmute themselves with '!discord unmute'.")
 CreateConVar("discordbot_port", "37405", FCVAR_ARCHIVE, "Sets the node server port.")
 CreateConVar("discordbot_name", "TTT Discord Bot", FCVAR_ARCHIVE, "Sets the Plugin Prefix for helpermessages.") --The name which will be displayed in front of any Message
 FILEPATH = "ttt_discord_bot.dat"
@@ -185,7 +186,15 @@ hook.Add("PlayerSay", "ttt_discord_bot_PlayerSay", function(ply, msg)
         return
     end
     -- TODO: Allow players to unmute themselves
-	if (string.sub(msg, 1, 9) ~= '!discord ') then return end
+    if (string.sub(msg, 1, 9) ~= '!discord ') then return end
+    if (string.sub(msg, 10, 6) ~= 'unmute') then
+        if GetConVar("discordbot_allow_player_unmutes"):GetBool() then
+            unmute(ply, "Player requested unmute")
+        else
+			ply:PrintMessage(HUD_PRINTTALK, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "This ability is currently disabled by the host.")
+        end
+        return
+    end
 	tag = string.sub(msg, 10)
 	tag_utf8 = ""
 
