@@ -137,10 +137,10 @@ function mute(ply)
 end
 
 function unmute(ply, reason)
+    sendClientIconInfo(ply, false)
     if not GetConVar("discordbot_enabled"):GetBool() then
         return
     end
-	sendClientIconInfo(ply, false)
 	if not reason then
 		reason = "none"
 	end
