@@ -12,6 +12,7 @@ const MAX_WAIT = 2000;  // Maximum wait in milliseconds until the bot unmutes ev
 var guild, channel;
 
 var muted = {};
+var muted_members = {};
 
 var get = [];
 var last_request = start;
@@ -42,7 +43,10 @@ client.on('voiceStateUpdate',(oldMember,newMember) => {//player leaves the ttt-c
 
 isMemberInVoiceChannel = (member) => member.voiceChannelID == config.discord.channel;
 isMemberMutedByBot = (member) => muted[member] == true;
-setMemberMutedByBot = (member,set=true) => muted[member] = set;
+setMemberMutedByBot = (member,set=true) => {
+	muted[member] = set;
+	muted_members[member] = member; // Key is converted to string. This allows retrieving actual member object.
+};
 
 
 get['connect'] = (params,ret) => {
@@ -84,8 +88,8 @@ get['state'] = (params,ret) => {
 
 	if (member) {
 		if (isMemberInVoiceChannel(member)) {
-			if (!member.servermute) {
-				setMemberMutedByBot(false);
+			if (!member.serverMute) {
+				setMemberMutedByBot(member, false);
 			}
 			ret({
 				success: true,
@@ -170,7 +174,8 @@ get['mute'] = (params,ret) => {
 // Unmute all players muted by bot
 function unmuteAll() {
     let unmute = get["mute"];
-    for (let member in muted) {
+    for (let member_str in muted_members) {
+		let member = muted_members[member_str];
         if (!isMemberMutedByBot(member)) {
             continue;
         }
@@ -190,7 +195,7 @@ function unmuteAll() {
 var srvr = http.createServer((req,res)=>{
 	if (typeof req.headers.params === 'string' && typeof req.headers.req === 'string' && typeof get[req.headers.req] === 'function') {
 		try {
-            let params = JSON.parse(req.headers.params);
+			let params = JSON.parse(req.headers.params);
             last_request = Date.now();
 			get[req.headers.req](params,(ret)=>res.end(JSON.stringify(ret)));
 		}catch(e) {
