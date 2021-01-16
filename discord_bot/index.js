@@ -7,12 +7,14 @@ const fs = require('fs');
 const start = Date.now();
 
 const PORT = config.server.port; //unused port and since now the OFFICIAL ttt_discord_bot port ;)
+const MAX_WAIT = 2000;  // Maximum wait in milliseconds until the bot unmutes everyone assuming that the game crashed
 
 var guild, channel;
 
 var muted = {};
 
 var get = [];
+var last_request = start;
 
 function timestamp() {
 	let d = new Date();
@@ -165,10 +167,31 @@ get['mute'] = (params,ret) => {
 }
 
 
+// Unmute all players muted by bot
+function unmuteAll() {
+    let unmute = get["mute"];
+    for (let member in muted) {
+        if (!isMemberMutedByBot(member)) {
+            continue;
+        }
+        let params = {
+            id: member["user"].id,
+            num: -1,
+            mute: false,
+            reason: "May have lost connection"
+        };
+        unmute(params, (res) => {
+            return;
+        })
+    }
+}
+
+
 var srvr = http.createServer((req,res)=>{
 	if (typeof req.headers.params === 'string' && typeof req.headers.req === 'string' && typeof get[req.headers.req] === 'function') {
 		try {
-			let params = JSON.parse(req.headers.params);
+            let params = JSON.parse(req.headers.params);
+            last_request = Date.now();
 			get[req.headers.req](params,(ret)=>res.end(JSON.stringify(ret)));
 		}catch(e) {
 			res.end('no valid JSON in params');
@@ -183,3 +206,20 @@ srvr.listen({
 },()=>{
 	log("  " + timestamp() + 'http interface is ready :)')
 });
+
+function wait(time) {
+    return new Promise((res) => setTimeout(res, time));
+}
+
+function checkConnection() {
+    if (Date.now() - last_request > MAX_WAIT) {
+        console.log("May have lost connection, unmuting all.");
+        unmuteAll();
+    }
+    wait(MAX_WAIT).then(() => {
+        checkConnection();
+    });
+}
+
+checkConnection();
+  
