@@ -27,6 +27,7 @@ CreateConVar("discordbot_port", "37405", FCVAR_ARCHIVE, "Sets the node server po
 CreateConVar("discordbot_name", "TTT Discord Bot", FCVAR_ARCHIVE, "Sets the Plugin Prefix for helpermessages.") --The name which will be displayed in front of any Message
 FILEPATH = "ttt_discord_bot.dat"
 TRIES = 3
+RETRY = false
 ids = {}
 num = 0
 ids_raw = file.Read(FILEPATH, "DATA")
@@ -59,7 +60,7 @@ function GET(req, params, cb, tries)
 			tries = TRIES
 		end
 
-		if (tries ~= 0) then
+		if (tries ~= 0 and RETRY) then
 			print("Retrying")
 			GET(req, params, cb, tries - 1)
 		end
@@ -79,7 +80,10 @@ function sendClientIconInfo(ply, mute)
 end
 
 function updateIcon(ply)
-	-- print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting status for player " .. ply:GetName())
+    -- print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting status for player " .. ply:GetName())
+    if not ply then
+        return
+    end
 	GET("state", {
 		id = ids[ply:SteamID()]
 	}, function(res)
