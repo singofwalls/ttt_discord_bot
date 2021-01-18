@@ -153,7 +153,9 @@ function unmute(ply, reason)
 				id = ids[ply:SteamID()],
 				reason = reason
 			}, function(res)
-				if not res return end
+				if not res then 
+					return 
+				end
 				if (res.success) then
 					if (ply) then
 						-- ply:PrintMessage(HUD_PRINTCENTER, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "You're no longer muted in discord!")
