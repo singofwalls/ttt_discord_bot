@@ -118,7 +118,7 @@ get['mute'] = (params,ret) => {
 	}
 	//let member = guild.members.find('id', id);
 	let member = guild.members.find(user => user.id === id);
-	log("**" + timestamp() + " (" + params.num + ") Mute/unmute Request for: " + member["user"].username + ". Member is currently muted: " + member.serverMute + ". Request is to mute: " + mute + ". For reason: " + reason);
+	log("**" + timestamp() + " (" + params.num + ") Mute/unmute Request for: " + member["user"].username + "\n Member is currently muted: " + member.serverMute + "\n Request is to mute: " + mute + "\n For reason: " + reason);
 
 	if (member) {
 		if (isMemberInVoiceChannel(member)) {

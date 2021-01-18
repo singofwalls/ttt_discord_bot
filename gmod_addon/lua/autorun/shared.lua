@@ -131,7 +131,7 @@ function mute(ply)
 		mute_time = tonumber(GetConVar("discordbot_unmute_time"):GetString())
 		if mute_time ~= 0 then
 			timer.Create("unmute " .. ply:GetName(), mute_time, 1, function ()
-				unmute(ply)
+				unmute(ply, "Set mute duration expired")
 			end)
 		end
 	end
@@ -153,6 +153,7 @@ function unmute(ply, reason)
 				id = ids[ply:SteamID()],
 				reason = reason
 			}, function(res)
+				if not res return end
 				if (res.success) then
 					if (ply) then
 						-- ply:PrintMessage(HUD_PRINTCENTER, "[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "You're no longer muted in discord!")
