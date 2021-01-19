@@ -20,22 +20,28 @@ var last_request = start;
 
 function timestamp() {
 	let d = new Date();
-	return "[" + d.getHours() + "-" + d.getMinutes() + "-" + d.getSeconds() + "-" + d.getMilliseconds() + "] ";
+	return "[" + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds() + ":" + d.getMilliseconds() + "] ";
 }
 
+var log_name = "logs/" + timestamp().replace(/:/g, "-").trim() + ".txt"
+fs.mkdir("logs", (err) => { })
 function log(content) {
-	fs.appendFile(timestamp() + " log.txt", content, function (err) {
+	let stamped = "  " + timestamp() + content;
+	fs.appendFile(log_name, stamped + "\n", function (err) {
 	if (err) throw err;
 	});
-	console.log(content);
+	console.log(stamped);
 }
+
+log(log_name)
+
 
 //create discord client
 const client = new Discord.Client();
 client.login(config.discord.token);
 
 client.on('ready', () => {
-	log("  " + timestamp() + 'Bot is ready to mute them all! :)');
+	log('Bot is ready to mute them all! :)');
 	guild = client.guilds.get(config.discord.guild);
 //	guild = client.guilds.find('id',config.discord.guild);
 	channel = guild.channels.get(config.discord.channel);
@@ -92,7 +98,7 @@ get['state'] = (params,ret) => {
 		return;
 	}
 	let member = guild.members.find(user => user.id === id);
-	log("  " + timestamp() + " (" + params.num + ") Status: " + member["user"].username + " mute: " + member.serverMute);
+	log(" (" + params.num + ") Status: " + member["user"].username + " mute: " + member.serverMute);
 
 	if (member) {
 		if (isMemberInVoiceChannel(member)) {
@@ -117,7 +123,7 @@ get['mute'] = (params,ret) => {
 	let mute = params.mute
 	let reason = params.reason
 	if (typeof id !== 'string' || typeof mute !== 'boolean') {
-		log("**" + timestamp() + " (" + params.num + ") Mute Request Failed: id is not string or mute is not bool" + params);
+		log(" (" + params.num + ") Mute Request Failed: id is not string or mute is not bool" + params);
 		ret({
 			success: false,
 			error: "id is not a string or mute is not a boolean",
@@ -126,7 +132,7 @@ get['mute'] = (params,ret) => {
 	}
 	//let member = guild.members.find('id', id);
 	let member = guild.members.find(user => user.id === id);
-	log("**" + timestamp() + " (" + params.num + ") Mute/unmute Request for: " + member["user"].username + "\n Member is currently muted: " + member.serverMute + "\n Request is to mute: " + mute + "\n For reason: " + reason);
+	log(" (" + params.num + ") Mute/unmute Request for: " + member["user"].username + "\n Member is currently muted: " + member.serverMute + "\n Request is to mute: " + mute + "\n For reason: " + reason);
 
 	if (member) {
 		if (isMemberInVoiceChannel(member)) {
@@ -217,7 +223,7 @@ srvr.timeout = 1000;
 srvr.listen({
 	port: PORT
 },()=>{
-	log("  " + timestamp() + 'http interface is ready :)')
+	log('http interface is ready :)')
 });
 
 function wait(time) {
