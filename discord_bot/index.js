@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const config = require('./config.json');
-const {log,error} = console;
+const {log1,error} = console;
 const http = require('http');
 const fs = require('fs');
 
@@ -17,9 +17,17 @@ var muted_members = {};
 var get = [];
 var last_request = start;
 
+
 function timestamp() {
 	let d = new Date();
-	return "[" + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds() + ":" + d.getMilliseconds() + "] ";
+	return "[" + d.getHours() + "-" + d.getMinutes() + "-" + d.getSeconds() + "-" + d.getMilliseconds() + "] ";
+}
+
+function log(content) {
+	fs.appendFile(timestamp() + " log.txt", content, function (err) {
+	if (err) throw err;
+	});
+	console.log(content);
 }
 
 //create discord client
@@ -218,7 +226,7 @@ function wait(time) {
 
 function checkConnection() {
     if (Date.now() - last_request > MAX_WAIT) {
-        console.log("May have lost connection, unmuting all.");
+        log("May have lost connection, unmuting all.");
         unmuteAll();
     }
     wait(MAX_WAIT).then(() => {

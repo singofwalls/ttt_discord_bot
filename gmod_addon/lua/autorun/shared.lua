@@ -59,6 +59,9 @@ function GET(req, params, cb, tries)
 		--print(res)
 		cb(util.JSONToTable(res))
 	end, function(err)
+		if not GetConVar("discordbot_enabled"):GetBool() then
+			return
+		end
 		print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Request to bot failed. Is the bot running?")
 		print("Err: " .. err)
 
