@@ -214,6 +214,7 @@ var srvr = http.createServer((req,res)=>{
 			let time = new Date(params.timestamp);
 			if (time - last_request > MAX_WAIT) {
 				log("Received expired request: " + req.headers.req + ": " + JSON.stringify(params))
+				res.end('Request received too long after sending');
 				return;
 			}
 
