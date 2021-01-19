@@ -45,7 +45,7 @@ end
 
 
 function timestamp() 
-	return os.date("[%H:%M:%S] ")
+	return os.date("[%c] ")
 end
 
 function GET(req, params, cb, tries)
@@ -54,6 +54,7 @@ function GET(req, params, cb, tries)
     end
 	httpAdress = ("http://" .. GetConVar("discordbot_host"):GetString() .. ":" .. GetConVar("discordbot_port"):GetString())
 	params["num"] = num
+	params["timestamp"] = string.sub(timestamp(), 2, -3)
 	num = num + 1
 	http.Fetch(httpAdress, function(res)
 		--print(res)

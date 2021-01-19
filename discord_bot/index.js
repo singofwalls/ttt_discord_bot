@@ -35,7 +35,6 @@ function log(content) {
 
 log(log_name)
 
-
 //create discord client
 const client = new Discord.Client();
 client.login(config.discord.token);
@@ -210,7 +209,14 @@ var srvr = http.createServer((req,res)=>{
 	if (typeof req.headers.params === 'string' && typeof req.headers.req === 'string' && typeof get[req.headers.req] === 'function') {
 		try {
 			let params = JSON.parse(req.headers.params);
-            last_request = Date.now();
+			last_request = Date.now();
+			
+			let time = new Date(params.timestamp);
+			if (time - last_request > MAX_WAIT) {
+				log("Received expired request: " + req.headers.req + ": " + JSON.stringify(params))
+				return;
+			}
+
 			get[req.headers.req](params,(ret)=>res.end(JSON.stringify(ret)));
 		}catch(e) {
 			res.end('no valid JSON in params');
