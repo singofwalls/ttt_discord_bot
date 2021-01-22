@@ -114,7 +114,7 @@ end
 function mute(ply)
 	if ids[ply:SteamID()] then
 		print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting mute for: " .. ply:GetName() .. " for reason: " .. reason)
-		sendClientIconInfo(ply, true)
+		-- sendClientIconInfo(ply, true)
 		GET("mute", {
 			mute = true,
 			id = ids[ply:SteamID()]
@@ -142,7 +142,7 @@ function mute(ply)
 end
 
 function unmute(ply, reason)
-    sendClientIconInfo(ply, false)
+    -- sendClientIconInfo(ply, false)
     if not GetConVar("discordbot_enabled"):GetBool() then
         return
     end
@@ -324,7 +324,7 @@ hook.Add("PostPlayerDeath", "ttt_discord_bot_PostPlayerDeath", function(ply)
 end)
 
 
-timer.Create("mute_status", 1, 0, function ()
+timer.Create("mute_status", .5, 0, function ()
     if not GetConVar("discordbot_enabled"):GetBool() then
         return
     end
