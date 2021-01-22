@@ -110,10 +110,10 @@ get['state'] = (params,ret) => {
 
 	if (member) {
 		if (isMemberInVoiceChannel(member)) {
+			log(" (" + params.num + ") Status: " + member["user"].username + " is muted: " + member.serverMute + ". muted by bot: " + isMemberMutedByBot(member));
 			if (!member.serverMute) {
 				setMemberMutedByBot(member, false);
 			}
-			log(" (" + params.num + ") Status: " + member["user"].username + " is muted: " + member.serverMute);
 			ret({
 				success: true,
 				muted: member.serverMute
