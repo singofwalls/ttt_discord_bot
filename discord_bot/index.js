@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const config = require('./config.json');
-const {log1,error} = console;
+const { log1, error } = console;
 const http = require('http');
 const fs = require('fs');
 
@@ -36,7 +36,7 @@ fs.mkdir(log_folder, (err) => { console.log(err) })
 function log(content) {
 	let stamped = "  " + timestamp() + content;
 	fs.appendFile(log_name, stamped + "\n", function (err) {
-	if (err) throw err;
+		if (err) throw err;
 	});
 	console.log(stamped);
 }
@@ -50,15 +50,15 @@ client.login(config.discord.token);
 client.on('ready', () => {
 	log('Bot is ready to mute them all! :)');
 	guild = client.guilds.get(config.discord.guild);
-//	guild = client.guilds.find('id',config.discord.guild);
+	//	guild = client.guilds.find('id',config.discord.guild);
 	channel = guild.channels.get(config.discord.channel);
-//	channel = guild.channels.find('id',config.discord.channel);
+	//	channel = guild.channels.find('id',config.discord.channel);
 });
-client.on('voiceStateUpdate',(oldMember,newMember) => {//player leaves the ttt-channel
-	 if (oldMember.voiceChannel != newMember.voiceChannel && isMemberInVoiceChannel(oldMember)) {
+client.on('voiceStateUpdate', (oldMember, newMember) => {//player leaves the ttt-channel
+	if (oldMember.voiceChannel != newMember.voiceChannel && isMemberInVoiceChannel(oldMember)) {
 		if (isMemberMutedByBot(newMember) && newMember.serverMute) {
-			newMember.setMute(false).then(()=>{
-				setMemberMutedByBot(newMember,false);
+			newMember.setMute(false).then(() => {
+				setMemberMutedByBot(newMember, false);
 			});
 		}
 	}
@@ -66,30 +66,30 @@ client.on('voiceStateUpdate',(oldMember,newMember) => {//player leaves the ttt-c
 
 isMemberInVoiceChannel = (member) => member.voiceChannelID == config.discord.channel;
 isMemberMutedByBot = (member) => muted[member] == true;
-setMemberMutedByBot = (member,set=true) => {
+setMemberMutedByBot = (member, set = true) => {
 	muted[member] = set;
 	muted_members[member] = member; // Key is converted to string. This allows retrieving actual member object.
 };
 
 
-get['connect'] = (params,ret) => {
+get['connect'] = (params, ret) => {
 	let tag_utf8 = params.tag.split(" ");
 	let tag = "";
 
-	tag_utf8.forEach(function(e) {
-		tag = tag+String.fromCharCode(e);
+	tag_utf8.forEach(function (e) {
+		tag = tag + String.fromCharCode(e);
 	});
 
-	let found = guild.members.filterArray(val => val.user.tag.match(new RegExp('.*'+tag+'.*')));
+	let found = guild.members.filterArray(val => val.user.tag.match(new RegExp('.*' + tag + '.*')));
 	if (found.length > 1) {
 		ret({
 			answer: 1 //pls specify
 		});
-	}else if (found.length < 1) {
+	} else if (found.length < 1) {
 		ret({
 			answer: 0 //no found
 		});
-	}else {
+	} else {
 		ret({
 			tag: found[0].user.tag,
 			id: found[0].id
@@ -97,7 +97,7 @@ get['connect'] = (params,ret) => {
 	}
 };
 
-get['state'] = (params,ret) => {
+get['state'] = (params, ret) => {
 	let id = params.id;
 	let message_id = " (" + params.num + " - " + params.timestamp + ")";
 	if (typeof id !== 'string') {
@@ -137,7 +137,7 @@ get['state'] = (params,ret) => {
 	}
 }
 
-get['mute'] = (params,ret) => {
+get['mute'] = (params, ret) => {
 	let id = params.id;
 	let mute = params.mute
 	let reason = params.reason
@@ -157,13 +157,13 @@ get['mute'] = (params,ret) => {
 	if (member) {
 		if (isMemberInVoiceChannel(member)) {
 			if (!member.serverMute && mute) {
-				member.setMute(true,"dead players can't talk!").then(()=>{
+				member.setMute(true, "dead players can't talk!").then(() => {
 					setMemberMutedByBot(member);
 					log(message_id + "Mute Request for: " + member["user"].username + " Succeeded!");
 					ret({
 						success: true
 					});
-				}).catch((err)=>{
+				}).catch((err) => {
 					log(message_id + "Mute/unmute Request for: " + member["user"].username + " Failed due to " + err);
 					ret({
 						success: false,
@@ -172,13 +172,13 @@ get['mute'] = (params,ret) => {
 				});
 			}
 			else if (member.serverMute && !mute && isMemberMutedByBot(member)) {
-				member.setMute(false).then(()=>{
-					setMemberMutedByBot(member,false);
+				member.setMute(false).then(() => {
+					setMemberMutedByBot(member, false);
 					log(message_id + "Unmute Request for: " + member["user"].username + " Succeeded!");
 					ret({
 						success: true
 					});
-				}).catch((err)=>{
+				}).catch((err) => {
 					log(message_id + "Unmute Request for: " + member["user"].username + " Failed due to " + err);
 					ret({
 						success: false,
@@ -202,7 +202,7 @@ get['mute'] = (params,ret) => {
 			});
 		}
 
-	}else {
+	} else {
 		log(message_id + "Mute/unmute Request failed because member is not found");
 		ret({
 			success: false,
@@ -214,32 +214,32 @@ get['mute'] = (params,ret) => {
 
 // Unmute all players muted by bot
 function unmuteAll() {
-    let unmute = get["mute"];
-    for (let member_str in muted_members) {
+	let unmute = get["mute"];
+	for (let member_str in muted_members) {
 		let member = muted_members[member_str];
-        if (!isMemberMutedByBot(member)) {
-            continue;
-        }
-        let params = {
-            id: member["user"].id,
-            num: -1,
-            mute: false,
-            reason: "May have lost connection"
-        };
-        unmute(params, (res) => {
-            return;
-        })
-    }
+		if (!isMemberMutedByBot(member)) {
+			continue;
+		}
+		let params = {
+			id: member["user"].id,
+			num: -1,
+			mute: false,
+			reason: "May have lost connection"
+		};
+		unmute(params, (res) => {
+			return;
+		})
+	}
 }
 
 
-var srvr = http.createServer((req,res)=>{
+var srvr = http.createServer((req, res) => {
 	if (typeof req.headers.params === 'string' && typeof req.headers.req === 'string') {
 		if (typeof get[req.headers.req] === 'function') {
 			try {
 				let params = JSON.parse(req.headers.params);
 				last_request = Date.now();
-				
+
 				let time = new Date(params.timestamp);
 				if (time - last_request > MAX_WAIT) {
 					log("Received expired request: " + req.headers.req + ": " + JSON.stringify(params))
@@ -247,15 +247,15 @@ var srvr = http.createServer((req,res)=>{
 					return;
 				}
 
-				get[req.headers.req](params,(ret)=>res.end(JSON.stringify(ret)));
-			}catch(e) {
+				get[req.headers.req](params, (ret) => res.end(JSON.stringify(ret)));
+			} catch (e) {
 				log("Received invalid request: " + req.headers.req + ": " + req.headers.params)
 				res.end();
 			}
 		} else {
 			log("Request has no matching function: " + req.headers.req);
 			res.end();
-		}	
+		}
 	} else {
 		log("Received invalid request type")
 		res.end();
@@ -265,23 +265,23 @@ var srvr = http.createServer((req,res)=>{
 srvr.timeout = 1000;
 srvr.listen({
 	port: PORT
-},()=>{
+}, () => {
 	log('http interface is ready :)')
 });
 
 function wait(time) {
-    return new Promise((res) => setTimeout(res, time));
+	return new Promise((res) => setTimeout(res, time));
 }
 
 function checkConnection() {
-    if (Date.now() - last_request > MAX_WAIT) {
-        log("May have lost connection, unmuting all.");
-        unmuteAll();
-    }
-    wait(MAX_WAIT).then(() => {
-        checkConnection();
-    });
+	if (Date.now() - last_request > MAX_WAIT) {
+		log("May have lost connection, unmuting all.");
+		unmuteAll();
+	}
+	wait(MAX_WAIT).then(() => {
+		checkConnection();
+	});
 }
 
 checkConnection();
-  
+
