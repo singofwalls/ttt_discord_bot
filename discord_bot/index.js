@@ -23,8 +23,16 @@ function timestamp() {
 	return "[" + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds() + ":" + d.getMilliseconds() + "] ";
 }
 
-var log_name = "logs/" + timestamp().replace(/:/g, "-").trim() + ".txt"
-fs.mkdir("logs", (err) => { })
+function datestamp() {
+	let d = new Date();
+	return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+}
+
+var log_folder = "./logs/" + datestamp() + "/"
+var log_name = log_folder + timestamp().replace(/:/g, "-").trim() + ".txt"
+fs.mkdir("./logs", (err) => { console.log(err) })
+fs.mkdir(log_folder, (err) => { console.log(err) })
+
 function log(content) {
 	let stamped = "  " + timestamp() + content;
 	fs.appendFile(log_name, stamped + "\n", function (err) {
