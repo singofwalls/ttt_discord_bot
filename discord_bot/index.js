@@ -56,9 +56,11 @@ client.on('ready', () => {
 });
 client.on('voiceStateUpdate',(oldMember,newMember) => {//player leaves the ttt-channel
 	 if (oldMember.voiceChannel != newMember.voiceChannel && isMemberInVoiceChannel(oldMember)) {
-		if (isMemberMutedByBot(newMember) && newMember.serverMute) newMember.setMute(false).then(()=>{
-			setMemberMutedByBot(newMember,false);
-		});
+		if (isMemberMutedByBot(newMember) && newMember.serverMute) {
+			newMember.setMute(false).then(()=>{
+				setMemberMutedByBot(newMember,false);
+			});
+		}
 	}
 });
 
@@ -232,24 +234,32 @@ function unmuteAll() {
 
 
 var srvr = http.createServer((req,res)=>{
-	if (typeof req.headers.params === 'string' && typeof req.headers.req === 'string' && typeof get[req.headers.req] === 'function') {
-		try {
-			let params = JSON.parse(req.headers.params);
-			last_request = Date.now();
-			
-			let time = new Date(params.timestamp);
-			if (time - last_request > MAX_WAIT) {
-				log("Received expired request: " + req.headers.req + ": " + JSON.stringify(params))
-				res.end('Request received too long after sending');
-				return;
-			}
+	if (typeof req.headers.params === 'string' && typeof req.headers.req === 'string') {
+		if (typeof get[req.headers.req] === 'function') {
+			try {
+				let params = JSON.parse(req.headers.params);
+				last_request = Date.now();
+				
+				let time = new Date(params.timestamp);
+				if (time - last_request > MAX_WAIT) {
+					log("Received expired request: " + req.headers.req + ": " + JSON.stringify(params))
+					res.end('Request received too long after sending');
+					return;
+				}
 
-			get[req.headers.req](params,(ret)=>res.end(JSON.stringify(ret)));
-		}catch(e) {
-			res.end('no valid JSON in params');
-		}
-	}else
+				get[req.headers.req](params,(ret)=>res.end(JSON.stringify(ret)));
+			}catch(e) {
+				log("Received invalid request: " + req.headers.req + ": " + req.headers.params)
+				res.end();
+			}
+		} else {
+			log("Request has no matching function: " + req.headers.req);
+			res.end();
+		}	
+	} else {
+		log("Received invalid request type")
 		res.end();
+	}
 });
 
 srvr.timeout = 1000;
