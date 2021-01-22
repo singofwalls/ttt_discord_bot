@@ -113,7 +113,7 @@ end
 
 function mute(ply)
 	if ids[ply:SteamID()] then
-		print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting mute for: " .. ply:GetName())
+		print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting mute for: " .. ply:GetName() .. " for reason: " .. reason)
 		sendClientIconInfo(ply, true)
 		GET("mute", {
 			mute = true,
@@ -151,7 +151,7 @@ function unmute(ply, reason)
 	end
 	if (ply) then
 		if ids[ply:SteamID()] then
-			print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting unmute for: " .. ply:GetName())
+			print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting unmute for: " .. ply:GetName() .. " for reason: " .. reason)
 			GET("mute", {
 				mute = false,
 				id = ids[ply:SteamID()],
@@ -319,7 +319,7 @@ hook.Add("PostPlayerDeath", "ttt_discord_bot_PostPlayerDeath", function(ply)
         return
     end
 	if (commonRoundState() == 1) then
-		mute(ply)
+		mute(ply, "Dead")
 	end
 end)
 

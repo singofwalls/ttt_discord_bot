@@ -98,6 +98,7 @@ get['connect'] = (params,ret) => {
 get['state'] = (params,ret) => {
 	let id = params.id;
 	if (typeof id !== 'string') {
+		log(" (" + params.num + ") Status Request Failed: id is not string" + params);
 		ret({
 			success: false,
 			error: "id is not a string",
@@ -105,19 +106,27 @@ get['state'] = (params,ret) => {
 		return;
 	}
 	let member = guild.members.find(user => user.id === id);
-	log(" (" + params.num + ") Status: " + member["user"].username + " mute: " + member.serverMute);
+	log(" (" + params.num + ") Status request received for: " + member["user"].username);
 
 	if (member) {
 		if (isMemberInVoiceChannel(member)) {
 			if (!member.serverMute) {
 				setMemberMutedByBot(member, false);
 			}
+			log(" (" + params.num + ") Status: " + member["user"].username + " is muted: " + member.serverMute);
 			ret({
 				success: true,
 				muted: member.serverMute
 			});
+		} else {
+			log(" (" + params.num + ") Status: " + member["user"].username + " failed because member not in voice channel");
+			ret({
+				success: false,
+				err: "Member not in voice channel"
+			});
 		}
 	} else {
+		log(" (" + params.num + ") Status Request Failed: member was not found");
 		ret({
 			success: false,
 			error: 'member not found!' //TODO lua: remove from ids table + file
@@ -146,10 +155,12 @@ get['mute'] = (params,ret) => {
 			if (!member.serverMute && mute) {
 				member.setMute(true,"dead players can't talk!").then(()=>{
 					setMemberMutedByBot(member);
+					log(" (" + params.num + ") Mute Request for: " + member["user"].username + " Succeeded!");
 					ret({
 						success: true
 					});
 				}).catch((err)=>{
+					log(" (" + params.num + ") Mute/unmute Request for: " + member["user"].username + " Failed due to " + err);
 					ret({
 						success: false,
 						error: err
@@ -159,10 +170,12 @@ get['mute'] = (params,ret) => {
 			else if (member.serverMute && !mute && isMemberMutedByBot(member)) {
 				member.setMute(false).then(()=>{
 					setMemberMutedByBot(member,false);
+					log(" (" + params.num + ") Unmute Request for: " + member["user"].username + " Succeeded!");
 					ret({
 						success: true
 					});
 				}).catch((err)=>{
+					log(" (" + params.num + ") Unmute Request for: " + member["user"].username + " Failed due to " + err);
 					ret({
 						success: false,
 						error: err
@@ -171,12 +184,14 @@ get['mute'] = (params,ret) => {
 			}
 			else {
 				// Already in correct state
+				log(" (" + params.num + ") Mute/unmute Request for: " + member["user"].username + " succeeded because member is already in correct state");
 				ret({
 					success: true,
 				});
 			}
 		}
 		else {
+			log(" (" + params.num + ") Mute/unmute Request for: " + member["user"].username + " failed because member is not in voice channel");
 			ret({
 				success: false,
 				error: 'member not in voice channel!'
@@ -184,6 +199,7 @@ get['mute'] = (params,ret) => {
 		}
 
 	}else {
+		log(" (" + params.num + ") Mute/unmute Request failed because member is not found");
 		ret({
 			success: false,
 			error: 'member not found!' //TODO lua: remove from ids table + file
