@@ -113,7 +113,7 @@ end
 
 function mute(ply)
 	if ids[ply:SteamID()] then
-		print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting mute for: " .. ply:GetName() .. " for reason: " .. reason)
+		print("[" .. GetConVar("discordbot_name"):GetString() .. " " .. timestamp() ..  "] " .. "Requesting mute for: " .. ply:GetName())
 		-- sendClientIconInfo(ply, true)
 		GET("mute", {
 			mute = true,
